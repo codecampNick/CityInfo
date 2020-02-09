@@ -12,5 +12,6 @@ namespace CityInfo.API.Services
         City GetCity(int cityId, bool includePointsOfIntrest);
         IEnumerable<PointOfIntrest> GetPointsOfIntrestForCity(int cityId);
         PointOfIntrest GetPointOfIntrestForCity(int cityId, int pointOfIntrestId);
+        bool CityExists(int cityId);
     }
 }
