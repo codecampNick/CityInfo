@@ -1,4 +1,5 @@
-﻿using CityInfo.API.Models;
+﻿using AutoMapper;
+using CityInfo.API.Models;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -17,12 +18,14 @@ namespace CityInfo.API.Controllers
         private readonly ILogger<PointOfInterestController> _log;
         private readonly IMailService _mailService;
         private readonly ICityInfoRepository _cityInfoRepository;
+        private readonly IMapper _mapper;
 
-        public PointOfInterestController(ILogger<PointOfInterestController> logger, IMailService mailService, ICityInfoRepository cityInfoRepository)
+        public PointOfInterestController(ILogger<PointOfInterestController> logger, IMailService mailService, ICityInfoRepository cityInfoRepository, IMapper mapper)
         {
             _log = logger ?? throw new ArgumentNullException(nameof(logger));
             _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
             _cityInfoRepository = cityInfoRepository ?? throw new ArgumentNullException(nameof(cityInfoRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet]
@@ -37,17 +40,17 @@ namespace CityInfo.API.Controllers
                     return NotFound();
                 }
                 var pointsOfIntrestForCity = _cityInfoRepository.GetPointsOfIntrestForCity(cityId);
-                var pointsOfIntrestForCityResults = new List<PointOfInterestDto>();
-                foreach (var poi in pointsOfIntrestForCity)
-                {
-                    pointsOfIntrestForCityResults.Add(new PointOfInterestDto()
-                    {
-                        Id = poi.Id,
-                        Name = poi.Name,
-                        Description = poi.Description
-                    });
-                }
-                return Ok(pointsOfIntrestForCityResults);
+                //var pointsOfIntrestForCityResults = new List<PointOfInterestDto>();
+                //foreach (var poi in pointsOfIntrestForCity)
+                //{
+                //    pointsOfIntrestForCityResults.Add(new PointOfInterestDto()
+                //    {
+                //        Id = poi.Id,
+                //        Name = poi.Name,
+                //        Description = poi.Description
+                //    });
+                //}
+                return Ok(_mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfIntrestForCity));
             }
             catch (Exception ex)
             {
@@ -68,13 +71,13 @@ namespace CityInfo.API.Controllers
             {
                 return NotFound();
             }
-            var pointOfIntrestResult = new PointOfInterestDto()
-            {
-                Id = pointOfIntrest.Id,
-                Name = pointOfIntrest.Name,
-                Description = pointOfIntrest.Description
-            };
-            return Ok(pointOfIntrestResult);
+            //var pointOfIntrestResult = new PointOfInterestDto()
+            //{
+            //    Id = pointOfIntrest.Id,
+            //    Name = pointOfIntrest.Name,
+            //    Description = pointOfIntrest.Description
+            //};
+            return Ok(_mapper.Map<PointOfInterestDto>(pointOfIntrest));
         }
 
         [HttpPost]
@@ -88,6 +91,9 @@ namespace CityInfo.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            if (!_cityInfoRepository.CityExists(cityId))
+                return NotFound();
+
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null)
                 return NotFound();
@@ -96,7 +102,7 @@ namespace CityInfo.API.Controllers
             var maxPointOfIntrest = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfIntrest).Max(p => p.Id);
             var finalPointOfIntrest = new PointOfInterestDto()
             {
-                Id = ++maxPointOfIntrest,
+                //Id = ++maxPointOfIntrest,
                 Name = pointOfIntrest.Name,
                 Description = pointOfIntrest.Description
             };
