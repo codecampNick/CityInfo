@@ -14,6 +14,8 @@ namespace CityInfo.API.Services
         PointOfIntrest GetPointOfIntrestForCity(int cityId, int pointOfIntrestId);
         bool CityExists(int cityId);
         void AddPointOfIntrestForCity(int cityId, PointOfIntrest pointOfIntrest);
+        void UpdatePointOfIntrestForCity(int cityId, PointOfIntrest pointOfIntrest);
+        void DeletePointOfIntrest(PointOfIntrest pointOfIntrest);
         bool Save();
     }
 }

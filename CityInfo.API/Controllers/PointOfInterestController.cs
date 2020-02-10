@@ -129,32 +129,49 @@ namespace CityInfo.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            //if (city == null)
+            //    return NotFound();
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
-            var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(p => p.Id == id);
-            if (pointOfIntrestFromStore == null)
+
+            //var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(p => p.Id == id);
+            var pointOfIntrestEntity = _cityInfoRepository.GetPointOfIntrestForCity(cityId, id);
+            if (pointOfIntrestEntity == null)
                 return NotFound();
-            pointOfIntrestFromStore.Name = pointOfIntrest.Name;
-            pointOfIntrestFromStore.Description = pointOfIntrest.Description;
+
+            //pointOfIntrestFromStore.Name = pointOfIntrest.Name;
+            //pointOfIntrestFromStore.Description = pointOfIntrest.Description;
+            _mapper.Map(pointOfIntrest, pointOfIntrestEntity);
+
+            //below is added as placeholder in case something other than entity frame work is used. Blacnk placeholder
+            _cityInfoRepository.UpdatePointOfIntrestForCity(cityId, pointOfIntrestEntity);
+
+            _cityInfoRepository.Save();
             return NoContent();
         }
 
         [HttpPatch("{id}")] //Json Patch (RFC 6902)
         public IActionResult PartiallyUpdatePointOfIntrest(int cityId, int id, [FromBody]JsonPatchDocument<PointOfIntrestForUpdateDto> patchDoc)
         {
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            //if (city == null)
+            //    return NotFound();
+            //var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(p => p.Id == id);
+            //if (pointOfIntrestFromStore == null)
+            //    return NotFound();
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
-            var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(p => p.Id == id);
-            if (pointOfIntrestFromStore == null)
+            var pointOfIntrestEntity = _cityInfoRepository.GetPointOfIntrestForCity(cityId, id);
+            if (pointOfIntrestEntity == null)
                 return NotFound();
 
-            var pointOfIntrestToPatch = new PointOfIntrestForUpdateDto()
-            {
-                Name = pointOfIntrestFromStore.Name,
-                Description = pointOfIntrestFromStore.Description
-            };
+            //var pointOfIntrestToPatch = new PointOfIntrestForUpdateDto()
+            //{
+            //    Name = pointOfIntrestFromStore.Name,
+            //    Description = pointOfIntrestFromStore.Description
+            //};
+            var pointOfIntrestToPatch = _mapper.Map<PointOfIntrestForUpdateDto>(pointOfIntrestEntity);
 
             patchDoc.ApplyTo(pointOfIntrestToPatch, ModelState);
             if (!ModelState.IsValid)
@@ -165,8 +182,13 @@ namespace CityInfo.API.Controllers
             if (!TryValidateModel(pointOfIntrestToPatch))
                 return BadRequest(ModelState);
 
-            pointOfIntrestFromStore.Name = pointOfIntrestToPatch.Name;
-            pointOfIntrestFromStore.Description = pointOfIntrestToPatch.Description;
+            //pointOfIntrestFromStore.Name = pointOfIntrestToPatch.Name;
+            //pointOfIntrestFromStore.Description = pointOfIntrestToPatch.Description;
+
+            _mapper.Map(pointOfIntrestToPatch, pointOfIntrestEntity);
+            //in place in case we need to map differently
+            _cityInfoRepository.UpdatePointOfIntrestForCity(cityId, pointOfIntrestEntity);
+            _cityInfoRepository.Save();
 
             return NoContent();
         }
@@ -174,17 +196,25 @@ namespace CityInfo.API.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeletePointOfIntrest(int cityId, int id)
         {
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            //if (city == null)
+            //    return NotFound();
+            //var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(c => c.Id == id);
+            //if (pointOfIntrestFromStore == null)
+            //    return NotFound();
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
-            var pointOfIntrestFromStore = city.PointsOfIntrest.FirstOrDefault(c => c.Id == id);
-            if (pointOfIntrestFromStore == null)
+            var pointOfIntrestEntity = _cityInfoRepository.GetPointOfIntrestForCity(cityId, id);
+            if (pointOfIntrestEntity == null)
                 return NotFound();
 
-            city.PointsOfIntrest.Remove(pointOfIntrestFromStore);
+            //city.PointsOfIntrest.Remove(pointOfIntrestFromStore);
+            _cityInfoRepository.DeletePointOfIntrest(pointOfIntrestEntity);
+            _cityInfoRepository.Save();
+
 
             _mailService.Send($"Point of Intrest DELETED", 
-                $"The Point Of Intrest {pointOfIntrestFromStore.Name} with id of {pointOfIntrestFromStore.Id} has been deleted from {city.Name}");
+                $"The Point Of Intrest {pointOfIntrestEntity.Name} with id of {pointOfIntrestEntity.Id} has been deleted from {pointOfIntrestEntity.City}");
 
             return NoContent();
         }

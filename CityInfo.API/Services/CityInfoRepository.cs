@@ -51,6 +51,16 @@ namespace CityInfo.API.Services
             city.PointsOfIntrest.Add(pointOfIntrest);
         }
 
+        public void UpdatePointOfIntrestForCity(int cityId, PointOfIntrest pointOfIntrest)
+        {
+            //TODO add code if needed (Not using Entity FrameWork)
+        }
+
+        public void DeletePointOfIntrest(PointOfIntrest pointOfIntrest)
+        {
+            _context.PointOfIntrest.Remove(pointOfIntrest);
+        }
+
         public bool Save()
         {
             return (_context.SaveChanges() >= 0);
