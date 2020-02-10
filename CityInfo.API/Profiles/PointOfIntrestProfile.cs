@@ -11,6 +11,7 @@ namespace CityInfo.API.Profiles
         public PointOfIntrestProfile()
         {
             CreateMap<Entities.PointOfIntrest, Models.PointOfInterestDto>();
+            CreateMap<Models.PointOfIntrestForCreationDto, Entities.PointOfIntrest>();
         }
     }
 }

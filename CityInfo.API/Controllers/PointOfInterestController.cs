@@ -94,21 +94,28 @@ namespace CityInfo.API.Controllers
             if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
 
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+            if (!_cityInfoRepository.CityExists(cityId))
                 return NotFound();
 
             //DEMO purposes this will be improved on
-            var maxPointOfIntrest = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfIntrest).Max(p => p.Id);
-            var finalPointOfIntrest = new PointOfInterestDto()
-            {
-                //Id = ++maxPointOfIntrest,
-                Name = pointOfIntrest.Name,
-                Description = pointOfIntrest.Description
-            };
+            //var maxPointOfIntrest = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfIntrest).Max(p => p.Id);
+            //var finalPointOfIntrest = new PointOfInterestDto()
+            //{
+            //    //Id = ++maxPointOfIntrest,
+            //    Name = pointOfIntrest.Name,
+            //    Description = pointOfIntrest.Description
+            //};
+            var finalPointOfIntrest = _mapper.Map<Entities.PointOfIntrest>(pointOfIntrest);
 
-            city.PointsOfIntrest.Add(finalPointOfIntrest);
-            return CreatedAtRoute("GetPointOfIntrest", new { cityId, id = finalPointOfIntrest.Id }, finalPointOfIntrest );
+            //city.PointsOfIntrest.Add(finalPointOfIntrest);
+            _cityInfoRepository.AddPointOfIntrestForCity(cityId, finalPointOfIntrest);
+            _cityInfoRepository.Save(); //exception handler ensures 500 on error
+
+            var createdPoiToReturn = _mapper.Map<Models.PointOfInterestDto>(finalPointOfIntrest);
+
+            //return CreatedAtRoute("GetPointOfIntrest", new { cityId, id = finalPointOfIntrest.Id }, finalPointOfIntrest );
+            return CreatedAtRoute("GetPointOfIntrest", new { cityId, id = createdPoiToReturn.Id }, createdPoiToReturn);
         }
 
         [HttpPut("{id}")]
